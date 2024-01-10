@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\out\</OutputDirectory>
-          <OutputName>TriggerPWM</OutputName>
+          <OutputName>SimplLIN_Master</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>CHIP_SWM166 </Define>
+              <Define>CHIP_SWM166</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\SWM166_StdPeriph_Driver\CSL\CMSIS\CoreSupport;..\..\SWM166_StdPeriph_Driver\CSL\CMSIS\DeviceSupport;..\..\SWM166_StdPeriph_Driver\CSL\SWM166_StdPeriph_Driver</IncludePath>
             </VariousControls>
