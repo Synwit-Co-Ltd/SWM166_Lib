@@ -20,10 +20,12 @@
 #include "SWM166_adc.h"
 
 static uint32_t VERSION_F = 0;	// 是否为 F 版芯片
+static uint32_t VERSION_D2 = 0;	// 是否为 D 版芯片第二种校正（offset 有正有负）
 
 static uint32_t VDD3V3 = 0;		// 是否芯片使用3.3V供电
 static uint32_t ADC3V6 = 0;		// 是否使用内部3.6V基准
-static uint32_t ADC_K, ADC_Offset;
+static uint32_t ADC_K;
+static  int32_t ADC_Offset;		// VERSION_D2 版芯片的 Offset 可以为负
 
 
 /****************************************************************************************************************************************** 
@@ -77,7 +79,18 @@ void ADC_Init(ADC_TypeDef * ADCx, ADC_InitStructure * initStruct)
 		ADC_Offset = (SYS->BACKUP[2] >> 4) & 0xFFFF;
 		ADC_K = ((SYS->BACKUP[2] >> 4) >> 16);
 		
-		if(VERSION_F)
+		if((SYS->BACKUP[2] & 0xF) == 0x0F)
+			VERSION_D2 = 1;
+		
+		if(VERSION_D2)
+		{
+			if(ADC_Offset & (1 << 9))
+				ADC_Offset = 0 - (ADC_Offset & 0x1FF);
+			
+			ADC_K = ADC_K * 1.024;
+		}
+		
+		if(VERSION_F | VERSION_D2)
 		{
 		}
 		else
@@ -273,10 +286,10 @@ uint32_t ADC_Read(ADC_TypeDef * ADCx, uint32_t chn)
 	dat = ADCx->CH[idx].DATA & ADC_DATA_VAL_Msk;
 	
 	ADCx->CH[idx].STAT = 0x01;		//清除EOC标志
-
-	if(VERSION_F)
+	
+	if(VERSION_F | VERSION_D2)
 	{
-		if(dat < ADC_Offset)
+		if((int32_t)dat < ADC_Offset)
 		{
 			dat = 0;
 		}
