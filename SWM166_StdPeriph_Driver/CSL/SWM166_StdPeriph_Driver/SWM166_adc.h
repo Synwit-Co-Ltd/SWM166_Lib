@@ -75,7 +75,7 @@ typedef struct {
 
 
 void ADC_Init(ADC_TypeDef * ADCx, ADC_InitStructure * initStruct);		//ADC模数转换器初始化
-uint32_t ADC_Calibrate(ADC_TypeDef * ADCx);
+void ADC_LoadCalib_D2_0V_3V1(void);
 void ADC_Open(ADC_TypeDef * ADCx);							//ADC开启，可以软件启动、或硬件触发ADC转换
 void ADC_Close(ADC_TypeDef * ADCx);							//ADC关闭，无法软件启动、或硬件触发ADC转换
 void ADC_Start(ADC_TypeDef * ADCx);							//启动指定ADC，开始模数转换

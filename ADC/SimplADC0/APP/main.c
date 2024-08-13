@@ -32,7 +32,7 @@ int main(void)
 	ADC_initStruct.EOC_IEn = 0;	
 	ADC_initStruct.OVF_IEn = 0;
 	ADC_Init(ADC0, &ADC_initStruct);					//≈‰÷√ADC
-		
+	
 	ADC_Open(ADC0);										// πƒ‹ADC
 	
 	while(1==1)
