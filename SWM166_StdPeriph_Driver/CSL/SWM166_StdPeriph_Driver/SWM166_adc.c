@@ -20,7 +20,7 @@
 #include "SWM166_adc.h"
 
 static uint32_t VERSION_F = 0;	// 是否为 F 版芯片
-static uint32_t VERSION_D2 = 0;	// 是否为 D 版芯片第二种校正（offset 有正有负）
+static uint32_t VERSION_D2 = 0;	// 是否为 D 版芯片第二种校正（offset 有正有负）（被测电压范围 0.8V--2.8V）
 
 static uint32_t VDD3V3 = 0;		// 是否芯片使用3.3V供电
 static uint32_t ADC3V6 = 0;		// 是否使用内部3.6V基准
