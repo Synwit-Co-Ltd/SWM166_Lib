@@ -85,7 +85,9 @@ void ADC_Init(ADC_TypeDef * ADCx, ADC_InitStructure * initStruct)
 		if(VERSION_D2)
 		{
 			if(ADC_Offset & (1 << 9))
-				ADC_Offset = 0 - (ADC_Offset & 0x1FF);
+				ADC_Offset = ADC_Offset & 0x1FF;
+			else
+				ADC_Offset = 0 - ADC_Offset;
 			
 			ADC_K = ADC_K * 1.024;
 		}
@@ -217,7 +219,9 @@ void ADC_LoadCalib_D2_0V_3V1(void)
 	ADC_K = ((SYS->BACKUP[1] >> 4) >> 16);
 	
 	if(ADC_Offset & (1 << 9))
-		ADC_Offset = 0 - (ADC_Offset & 0x1FF);
+		ADC_Offset = ADC_Offset & 0x1FF;
+	else
+		ADC_Offset = 0 - ADC_Offset;
 	
 	ADC_K = ADC_K * 1.024;
 }
