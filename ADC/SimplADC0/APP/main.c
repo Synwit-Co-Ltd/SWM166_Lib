@@ -22,6 +22,11 @@ int main(void)
 	PORT_Init(PORTB, PIN3,  PORTB_PIN3_ADC0_CH9,  0);		//PB.3  => ADC0.CH9
 	PORT_Init(PORTM, PIN9,  PORTM_PIN9_ADC0_CH10, 0);		//PM.9  => ADC0.CH10
 	
+	/* 注意：
+     * 在 SWM166D8U6 上，ADC0_CH4 的通道初始化须用： PORT_Init(PORTB, PIN0, 0, 0);
+     *
+     ****************************************************************************/
+	
 	ADC_initStruct.clk_src = ADC_CLKSRC_HRC_DIV2;
 	ADC_initStruct.clk_div = 6;
 	ADC_initStruct.ref_src = ADC_REFSRC_VDD3V3;
