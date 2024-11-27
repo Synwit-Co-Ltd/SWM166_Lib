@@ -40,7 +40,7 @@ void ADC_Init(ADC_TypeDef * ADCx, ADC_InitStructure * initStruct)
 {
 	uint8_t trig_src;
 	
-	if((SYS->CHIPID[0] >> 24) == 0xD3)
+	if(((SYS->CHIPID[0] >> 24) == 0xD3) || ((SYS->CHIPID[0] >> 24) == 0xFF))
 		VERSION_F = 1;
 	
 	if(VERSION_F && (initStruct->ref_src & 0x40))
