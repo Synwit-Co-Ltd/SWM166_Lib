@@ -23,7 +23,6 @@ static uint32_t VERSION_F = 0;	// 是否为 F 版芯片
 static uint32_t VERSION_D2 = 0;	// 是否为 D 版芯片第二种校正（offset 有正有负）（被测电压范围 0.8V--2.8V）
 
 static uint32_t VDD3V3 = 0;		// 是否芯片使用3.3V供电
-static uint32_t ADC3V6 = 0;		// 是否使用内部3.6V基准
 static uint32_t ADC_K;
 static  int32_t ADC_Offset;		// VERSION_D2 版芯片的 Offset 可以为负
 
@@ -40,10 +39,10 @@ void ADC_Init(ADC_TypeDef * ADCx, ADC_InitStructure * initStruct)
 {
 	uint8_t trig_src;
 	
-	if(((SYS->CHIPID[0] >> 24) == 0xD3) || ((SYS->CHIPID[0] >> 24) == 0xFF))
+	if((SYS->CHIPID[0] >> 24) == 0xD3)
 		VERSION_F = 1;
 	
-	if(VERSION_F && (initStruct->ref_src & 0x40))
+	if(initStruct->ref_src & 0x40)
 	{
 		initStruct->ref_src &= 0x3F;
 		
@@ -71,61 +70,47 @@ void ADC_Init(ADC_TypeDef * ADCx, ADC_InitStructure * initStruct)
 	
 	ADCx->CTRL3 &= ~(ADC_CTRL3_REFSEL_Msk | ADC_CTRL3_IREFSEL_Msk);
 	ADCx->CTRL3 |= ((initStruct->ref_src >> 4) << ADC_CTRL3_REFSEL_Pos);
-	if((initStruct->ref_src >> 4) == 0)
+	if((initStruct->ref_src >> 4) == 0)		// 是否使用内部3.6V基准
 	{
-		ADC3V6 = 1;
-		ADC3V6 = ADC3V6;	// 消除编译警告
-
 		ADC_Offset = (SYS->BACKUP[2] >> 4) & 0xFFFF;
 		ADC_K = ((SYS->BACKUP[2] >> 4) >> 16);
 		
 		if((SYS->BACKUP[2] & 0xF) == 0x0F)
-			VERSION_D2 = 1;
-		
-		if(VERSION_D2)
 		{
+			VERSION_D2 = 1;
+			
 			if(ADC_Offset & (1 << 9))
 				ADC_Offset = ADC_Offset & 0x1FF;
 			else
 				ADC_Offset = 0 - ADC_Offset;
-			
-			ADC_K = ADC_K * 1.024;
-		}
-		
-		if(VERSION_F | VERSION_D2)
-		{
-		}
-		else
-		{
-			ADCx->CALIBSET = (ADC_K << ADC_CALIBSET_K_Pos) | (ADC_Offset << ADC_CALIBSET_OFFSET_Pos);
-			ADCx->CALIBEN = (1 << ADC_CALIBEN_K_Pos) | (1 << ADC_CALIBEN_OFFSET_Pos);
 		}
 		
 		ADCx->CTRL3 |= ((initStruct->ref_src & 0xF) << ADC_CTRL3_IREFSEL_Pos);
 	}
 	else
 	{
-		if(VERSION_F)
+		if(VDD3V3)			// 芯片 3.3V 供电
 		{
-			if(VDD3V3)	// 芯片 3.3V 供电
-			{
-				ADC_Offset = SYS->CHIPID[0] & 0xFFF;
-				ADC_K = (SYS->CHIPID[0] >> 12) & 0xFFF;
-			}
-			else		// 芯片 5V 供电
-			{
-				ADC_Offset = SYS->BACKUP[1] & 0xFFFF;
-				ADC_K = SYS->BACKUP[1] >> 16;
-			}
+			ADC_Offset = SYS->CHIPID[0] & 0xFFF;
+			ADC_K = (SYS->CHIPID[0] >> 12) & 0xFFF;
 		}
-		else
+		else if(VERSION_F)	// 芯片 5V 供电
 		{
-			ADCx->CALIBSET = SYS->BACKUP[1];
-			ADCx->CALIBEN = (1 << ADC_CALIBEN_K_Pos) | (1 << ADC_CALIBEN_OFFSET_Pos);
+			ADC_Offset = SYS->BACKUP[1] & 0xFFFF;
+			ADC_K = SYS->BACKUP[1] >> 16;
 		}
 
 		ADCx->CTRL2 &= ~ADC_CTRL2_EREFSEL_Msk;
 		ADCx->CTRL2 |= ((initStruct->ref_src & 0xF) << ADC_CTRL2_EREFSEL_Pos);
+	}
+	
+	ADC_K = ADC_K * 1.024;
+	
+	if(VDD3V3)
+	{
+		ADCx->CTRL3 &= ~(ADC_CTRL3_REFSEL_Msk | ADC_CTRL3_IREFSEL_Msk);
+		ADCx->CTRL3 |=  (((1 << 1) | 0) << ADC_CTRL3_REFSEL_Pos) |
+						(7 << ADC_CTRL3_IREFSEL_Pos);
 	}
 	
 	if(initStruct->trig_src & 0x1000)
@@ -183,16 +168,6 @@ void ADC_Init(ADC_TypeDef * ADCx, ADC_InitStructure * initStruct)
 				(((initStruct->OVF_IEn & ADC_CH10) ? 1 : 0) << ADC_IE_CH10OVF_Pos) |
 				(((initStruct->OVF_IEn & ADC_CH11) ? 1 : 0) << ADC_IE_CH11OVF_Pos);
 	
-	if(VERSION_F)
-		ADC_K = ADC_K * 1.024;
-	
-	if(VERSION_F && VDD3V3)
-	{
-		ADCx->CTRL3 &= ~(ADC_CTRL3_REFSEL_Msk | ADC_CTRL3_IREFSEL_Msk);
-		ADCx->CTRL3 |=  (((1 << 1) | 0) << ADC_CTRL3_REFSEL_Pos) |
-						(7 << ADC_CTRL3_IREFSEL_Pos);
-	}
-
 	switch((uint32_t)ADCx)
 	{
 	case ((uint32_t)ADC0):		
@@ -314,18 +289,15 @@ uint32_t ADC_Read(ADC_TypeDef * ADCx, uint32_t chn)
 	
 	ADCx->CH[idx].STAT = 0x01;		//清除EOC标志
 	
-	if(VERSION_F | VERSION_D2)
+	if((int32_t)dat < ADC_Offset)
 	{
-		if((int32_t)dat < ADC_Offset)
-		{
-			dat = 0;
-		}
-		else
-		{
-			dat = ((dat - ADC_Offset) * ADC_K) >> 10;
-			if(dat > 4095)
-				dat = 4095;
-		}
+		dat = 0;
+	}
+	else
+	{
+		dat = ((dat - ADC_Offset) * ADC_K) >> 10;
+		if(dat > 4095)
+			dat = 4095;
 	}
 
 	return dat;
