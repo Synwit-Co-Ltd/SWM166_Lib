@@ -39,13 +39,13 @@ const IAP_Flash_Write_t IAP_Flash_Write = (IAP_Flash_Write_t)0x11000451;
 ******************************************************************************************************************************************/
 uint32_t FLASH_Erase(uint32_t addr)
 {	
-	__disable_irq();
+	uint32_t primask = SW_enter_critical();
 	
 	IAP_Flash_Erase(addr / 0x400, 0x0B11FFAC);
 	
 	FMC->CACHE |= (1 << FMC_CACHE_CCLR_Pos);
 	
-	__enable_irq();
+	SW_exit_critical(primask);
 	
 	return FLASH_RES_OK;
 }
@@ -62,13 +62,13 @@ uint32_t FLASH_Erase(uint32_t addr)
 ******************************************************************************************************************************************/
 uint32_t FLASH_Write(uint32_t addr, uint32_t buff[], uint32_t count)
 {
-	__disable_irq();
+	uint32_t primask = SW_enter_critical();
 	
 	IAP_Flash_Write(addr, (uint32_t)buff, count/2);
 	
 	FMC->CACHE |= (1 << FMC_CACHE_CCLR_Pos);
 	
-	__enable_irq();
+	SW_exit_critical(primask);
 	
 	return FLASH_RES_OK;
 }
@@ -83,7 +83,7 @@ uint32_t FLASH_Write(uint32_t addr, uint32_t buff[], uint32_t count)
 ******************************************************************************************************************************************/
 void Flash_Param_at_xMHz(uint32_t x)
 {	
-	__disable_irq();
+	uint32_t primask = SW_enter_critical();
 	
 	if(x < 33)				// 无需等待周期
 		IAP_Flash_Param(0x89241, 0x0B11FFAC);
@@ -92,5 +92,5 @@ void Flash_Param_at_xMHz(uint32_t x)
 	else					// 2 个等待周期
 		IAP_Flash_Param(0x8A241, 0x0B11FFAC);
 	
-	__enable_irq();
+	SW_exit_critical(primask);
 }

@@ -310,7 +310,7 @@ void GD25Q21_ReadData_4bit_DMA(uint32_t addr, uint8_t buff[], uint32_t cnt)
 	
 	GD25Q21_Assert();
 	
-	__disable_irq();
+	uint32_t primask = SW_enter_critical();
 	
 	SPI_Write(SPI0, (GD25Q21_CMD_READ_DATA_4bit << 24) | (addr & 0xFFFFFF));
 	while(SPI_IsRXEmpty(SPI0)) __NOP();
@@ -318,7 +318,7 @@ void GD25Q21_ReadData_4bit_DMA(uint32_t addr, uint8_t buff[], uint32_t cnt)
 	
 	SPI0->CTRL |= (1 << SPI_CTRL_DMARXEN_Pos);
 	
-	__enable_irq();
+	SW_exit_critical(primask);
 	
 	while(DMA_CH_INTStat(DMA_CH1, DMA_IT_DONE) == 0) __NOP();
 	DMA_CH_INTClr(DMA_CH1, DMA_IT_DONE);
